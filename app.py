@@ -2,6 +2,8 @@ import streamlit as st
 import time
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+from geopy.extra.rate_limiter import RateLimiter
+from geopy.exc import GeocoderUnavailable, GeocoderTimedOut
 
 
 st.title('ECO ROUTE')
@@ -63,12 +65,12 @@ def eligible_transports(distance: float, rules: dict) -> tuple[list[str], dict]:
     return allowed, notes
 
 
-geolocator = Nominatim(user_agent='eco_route_school_project')
+geolocator = Nominatim(user_agent='eco_route_school_project (contact: dmitrij.belchikov@gmail.com)', timeout = 10)
+geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=24*3600)
 def get_distance_km(start_text: str, end_text: str) -> float:
     start = geolocator.geocode(start_text)
-    time.sleep(1)
     end = geolocator.geocode(end_text)
     
     if not start or not end:
@@ -134,5 +136,10 @@ if submitted:
                 st.write("Jūsų pasirinkimas jau yra vienas ekologiškiausių!")
                 
                 
+        except (GeocoderUnavailable, GeocoderTimedOut) as e:
+            st.error("Geokodavimo paslauga laikinai nepasiekiama. Bandykite dar kartą po kelių sekundžių.")
+            st.stop()
+            
         except ValueError as e:
             st.error(str(e))
+            st.stop()
