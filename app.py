@@ -1,7 +1,5 @@
 import streamlit as st
-from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter
-from geopy.exc import GeocoderUnavailable, GeocoderTimedOut, GeocoderRateLimited
+import requests
 from geopy.distance import geodesic
 
 
@@ -58,32 +56,46 @@ def eligible_transports(distance: float, rules: dict) -> tuple[list[str], dict]:
         allowed.append(t)
         
         soft_max = r.get('soft_max_km', None)
-        if soft_max != None and soft_max < distance:
+        if soft_max is not None and soft_max < distance:
             notes[t] = ('Įmanoma, bet sunkokai.')
             
     return allowed, notes
 
+API_KEY = st.secrets["GEOAPIFY_API_KEY"]
 
-geolocator = Nominatim(user_agent='eco_route_school_project (contact: dmitrij.belchikov@gmail.com)', timeout = 10)
-geocode = RateLimiter(
-    geolocator.geocode,
-    min_delay_seconds=1.2,
-    max_retries=2,
-    error_wait_seconds=2.0,
-)
+def geocode_place(place: str):
+    url = "https://api.geoapify.com/v1/geocode/search"
+    params = {
+        'text': place,
+        'apiKey': API_KEY,
+        'limit': 1
+    }
+    response = requests.get(url, params=params, timeout=10)
+    response.raise_for_status()
+    
+    data = response.json()
+    features = data.get("features", [])
+    
+    if not features: 
+        return None
+    
+    lon, lat = features[0]["geometry"]["coordinates"]
+    return lat, lon
 
 @st.cache_data(show_spinner=False, ttl=7*24*3600)
 def get_distance_km(start_text: str, end_text: str) -> float:
     start_text = start_text.strip()
     end_text = end_text.strip()
 
-    start = geocode(start_text)
-    end = geocode(end_text)
+    start_coords = geocode_place(start_text)
+    end_coords = geocode_place(end_text)
 
-    if not start or not end:
-        raise ValueError("Nepavyko rasti vienos iš vietų. Patikslinkite (miestas, šalis).")
+    if start_coords is None:
+        raise ValueError(f"Nepavyko rasti išvykimo vietos: {start_text}")
+    if end_coords is None:
+        raise ValueError(f"Nepavyko rasti kelionės tikslo: {end_text}")
 
-    return geodesic((start.latitude, start.longitude), (end.latitude, end.longitude)).km
+    return geodesic(start_coords, end_coords).km
 
 box = st.container(border=True)
 with box:
@@ -103,20 +115,7 @@ with box:
             
         submitted = st.form_submit_button('Apskaičiuoti')
         
-st.write("DEBUG start:", repr(start_text))
-st.write("DEBUG end:", repr(end_text))
-
-start = geocode(start_text)
-st.write("DEBUG start found:", bool(start))
-if start:
-    st.write("DEBUG start coords:", start.latitude, start.longitude)
-
-end = geocode(end_text)
-st.write("DEBUG end found:", bool(end))
-if end:
-    st.write("DEBUG end coords:", end.latitude, end.longitude)
-
-
+    
 if submitted:
     if not start_text.strip() or not end_text.strip():
         st.error('Prašome įvesti išvykimo vietą ir kelionės tikslą.')
@@ -156,20 +155,18 @@ if submitted:
                 st.write("Jūsų pasirinkimas jau yra vienas ekologiškiausių!")
                 
                 
-        except GeocoderRateLimited as e:
-            wait = getattr(e, "retry_after", None)
-            if wait:
-                st.error(f"Per daug užklausų geokoderiui. Bandykite po ~{wait} s.")
-            else:
-                st.error("Per daug užklausų geokoderiui (rate limit). Palaukite 30–60 s ir bandykite dar kartą.")
+        except requests.exceptions.Timeout:
+            st.error("Geokodavimo paslauga laikinai neatsako. Bandykite vėliau.")
             st.stop()
-            
-        except (GeocoderUnavailable, GeocoderTimedOut):
-            st.error("Geokodavimo paslauga laikinai nepasiekiama. Bandykite vėliau.")
+
+        except requests.exceptions.HTTPError as e:
+            st.error("Geokodavimo paslaugos klaida. Patikrinkite API raktą arba bandykite vėliau.")
             st.stop()
-            
+
+        except requests.exceptions.RequestException:
+            st.error("Nepavyko susisiekti su geokodavimo paslauga.")
+            st.stop()
+
         except ValueError as e:
             st.error(str(e))
             st.stop()
-
-
