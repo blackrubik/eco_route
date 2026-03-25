@@ -1,9 +1,8 @@
 import streamlit as st
-import time
 from geopy.geocoders import Nominatim
-from geopy.distance import geodesic
 from geopy.extra.rate_limiter import RateLimiter
-from geopy.exc import GeocoderUnavailable, GeocoderTimedOut
+from geopy.exc import GeocoderUnavailable, GeocoderTimedOut, GeocoderRateLimited
+from geopy.distance import geodesic
 
 
 st.title('ECO ROUTE')
@@ -66,16 +65,24 @@ def eligible_transports(distance: float, rules: dict) -> tuple[list[str], dict]:
 
 
 geolocator = Nominatim(user_agent='eco_route_school_project (contact: dmitrij.belchikov@gmail.com)', timeout = 10)
-geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+geocode = RateLimiter(
+    geolocator.geocode,
+    min_delay_seconds=1.2,
+    max_retries=2,
+    error_wait_seconds=2.0,
+)
 
-@st.cache_data(show_spinner=False, ttl=24*3600)
+@st.cache_data(show_spinner=False, ttl=7*24*3600)
 def get_distance_km(start_text: str, end_text: str) -> float:
-    start = geolocator.geocode(start_text)
-    end = geolocator.geocode(end_text)
-    
+    start_text = start_text.strip()
+    end_text = end_text.strip()
+
+    start = geocode(start_text)
+    end = geocode(end_text)
+
     if not start or not end:
         raise ValueError("Nepavyko rasti vienos iš vietų. Patikslinkite (miestas, šalis).")
-    
+
     return geodesic((start.latitude, start.longitude), (end.latitude, end.longitude)).km
 
 box = st.container(border=True)
@@ -136,8 +143,16 @@ if submitted:
                 st.write("Jūsų pasirinkimas jau yra vienas ekologiškiausių!")
                 
                 
-        except (GeocoderUnavailable, GeocoderTimedOut) as e:
-            st.error("Geokodavimo paslauga laikinai nepasiekiama. Bandykite dar kartą po kelių sekundžių.")
+        except GeocoderRateLimited as e:
+            wait = getattr(e, "retry_after", None)
+            if wait:
+                st.error(f"Per daug užklausų geokoderiui. Bandykite po ~{wait} s.")
+            else:
+                st.error("Per daug užklausų geokoderiui (rate limit). Palaukite 30–60 s ir bandykite dar kartą.")
+            st.stop()
+            
+        except (GeocoderUnavailable, GeocoderTimedOut):
+            st.error("Geokodavimo paslauga laikinai nepasiekiama. Bandykite vėliau.")
             st.stop()
             
         except ValueError as e:
