@@ -103,7 +103,20 @@ with box:
             
         submitted = st.form_submit_button('Apskaičiuoti')
         
-    
+st.write("DEBUG start:", repr(start_text))
+st.write("DEBUG end:", repr(end_text))
+
+start = geocode(start_text)
+st.write("DEBUG start found:", bool(start))
+if start:
+    st.write("DEBUG start coords:", start.latitude, start.longitude)
+
+end = geocode(end_text)
+st.write("DEBUG end found:", bool(end))
+if end:
+    st.write("DEBUG end coords:", end.latitude, end.longitude)
+
+
 if submitted:
     if not start_text.strip() or not end_text.strip():
         st.error('Prašome įvesti išvykimo vietą ir kelionės tikslą.')
@@ -159,15 +172,4 @@ if submitted:
             st.error(str(e))
             st.stop()
 
-st.write("DEBUG start:", repr(start_text))
-st.write("DEBUG end:", repr(end_text))
 
-start = geocode(start_text)
-st.write("DEBUG start found:", bool(start))
-if start:
-    st.write("DEBUG start coords:", start.latitude, start.longitude)
-
-end = geocode(end_text)
-st.write("DEBUG end found:", bool(end))
-if end:
-    st.write("DEBUG end coords:", end.latitude, end.longitude)
