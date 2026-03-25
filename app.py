@@ -158,3 +158,16 @@ if submitted:
         except ValueError as e:
             st.error(str(e))
             st.stop()
+
+st.write("DEBUG start:", repr(start_text))
+st.write("DEBUG end:", repr(end_text))
+
+start = geocode(start_text)
+st.write("DEBUG start found:", bool(start))
+if start:
+    st.write("DEBUG start coords:", start.latitude, start.longitude)
+
+end = geocode(end_text)
+st.write("DEBUG end found:", bool(end))
+if end:
+    st.write("DEBUG end coords:", end.latitude, end.longitude)
