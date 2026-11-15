@@ -1,0 +1,22 @@
+{
+  "status": "used_by_app_published_operating_plus_WTT_scenario",
+  "publisher": "Department for Energy Security and Net Zero (DESNZ)",
+  "year": 2026,
+  "verified_on": "2026-11-15",
+  "source_page": "https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2026",
+  "workbook_url": "https://assets.publishing.service.gov.uk/media/6a6c9748862aaf18d9c62ac9/ghg-conversion-factors-2026-flat-format-revised.xlsx",
+  "workbook_sha256": "a9a455ab396dae226d510c7be6233748416d490c41a5d20f3dc7a0c45feecd5e",
+  "worksheet": "Factors by Category",
+  "rows": [
+    {"id": "4_301_3074_4_1", "category": "Passenger vehicles", "type": "Average car", "variant": "Unknown", "unit": "km", "ghg": "kg CO2e", "value": "0.16591"},
+    {"id": "26_904_3074_4_1", "category": "WTT- pass vehs & travel- land", "type": "Average car", "variant": "Unknown", "unit": "km", "ghg": "kg CO2e", "value": "0.04399"},
+    {"id": "25_314_3145_11_1", "category": "Business travel- land", "type": "Average local bus", "variant": "", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.10151"},
+    {"id": "26_910_3145_11_1", "category": "WTT- pass vehs & travel- land", "type": "Average local bus", "variant": "", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.02649"},
+    {"id": "25_315_3147_11_1", "category": "Business travel- land", "type": "National rail", "variant": "", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.03092"},
+    {"id": "26_911_3147_11_1", "category": "WTT- pass vehs & travel- land", "type": "National rail", "variant": "", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.00897"},
+    {"id": "21_316_3178_11_1", "category": "Business travel- air", "type": "International, to/from non-UK", "variant": "With RF", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.14253"},
+    {"id": "21_316_3179_11_1", "category": "Business travel- air", "type": "International, to/from non-UK", "variant": "Without RF", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.08420"},
+    {"id": "22_912_3178_11_1", "category": "WTT- business travel- air", "type": "International, to/from non-UK", "variant": "With RF", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.02162"},
+    {"id": "22_912_3179_11_1", "category": "WTT- business travel- air", "type": "International, to/from non-UK", "variant": "Without RF", "unit": "passenger.km", "ghg": "kg CO2e", "value": "0.02162"}
+  ]
+}
