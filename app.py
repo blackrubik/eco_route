@@ -56,7 +56,7 @@ def save_result(distances, failures, signature, title, places=None):
 
 
 st.title("🌿 ECO ROUTE")
-st.write("Palyginkite kelionės emisijas ir supraskite, iš kur gaunami skaičiai.")
+st.write("Palyginkite kelionės emisijas ir raskite ekologiškesnią alternatyvą.")
 st.caption("Viena kryptis · vienam žmogui · vidutiniai scenarijai, ne tikslus kelionės matavimas")
 if st.button("Išvalyti šios sesijos duomenis", key="clear_session"):
     for name in list(st.session_state):
